@@ -1,0 +1,23 @@
+{
+  "name": "yucicord",
+  "version": "1.0.0",
+  "description": "Discord chat and music bot",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mstiekema/Yucicord.git"
+  },
+  "author": "Mstiekema",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mstiekema/Yucicord/issues"
+  },
+  "homepage": "https://github.com/Mstiekema/Yucicord#readme",
+  "dependencies": {
+    "discord.js": "^11.1.0",
+    "opusscript": "0.0.3"
+  }
+}
