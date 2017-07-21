@@ -9,16 +9,6 @@ client.on('ready', function() {
   console.log('Yucicord ready for action');
   notif.youtube(client);
   notif.twitch(client);
-  
-  // Set member topic
-  client.guilds.map(function(g) {
-    g.defaultChannel.setTopic('Users on server: ' + g.members.map(function() {}).length + ' | Users online: '+ g.presences.filter(function(value){return value.status == 'online'}).map(function() {}).length)
-    console.log("Set the user info topic")
-    setInterval(function () {
-      g.defaultChannel.setTopic('Users on server: ' + g.members.map(function() {}).length + ' | Users online: '+ g.presences.filter(function(value){return value.status == 'online'}).map(function() {}).length)
-      console.log("Updated info topic")
-    }, 30000);    
-  })
   notif.twitter(client);
 });
 
@@ -73,7 +63,6 @@ client.on('message', function(message) {
   }
   
   songq.sr(message);
-    
 });
 
 client.login(config.token);
