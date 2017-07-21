@@ -128,8 +128,8 @@ module.exports = {
     }, 60000);
   },
   twitter: function (c) {
-    var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
-    var users = [367305627, 332482499, 1201956109]
+    var chan = c.guilds.array()[0].channels.find('name', 'twitter-feed')
+    var users = [1201956109]
     var client = new Twitter({
       consumer_key: config.key,
       consumer_secret: config.secret,
@@ -139,9 +139,8 @@ module.exports = {
     
     client.stream('statuses/filter', {'follow': users.join(",")}, function(stream) {
       stream.on('data', function(event) {
-        console.log("NEW TWEET INC")
         if(users.indexOf(event.user.id) == -1) return
-        console.log("TWEET FROM VIP")
+        if(event.text.startsWith("@")) return
         const embed = {
           "color": 3447003,
           "author": {
@@ -157,7 +156,7 @@ module.exports = {
           ]
         };  
         
-        chan.send("Nieuwe tweet van " + event.user["screen_name"] + "! ", { embed })
+        chan.send({ embed })
       });
       
       stream.on('error', function(error) {
