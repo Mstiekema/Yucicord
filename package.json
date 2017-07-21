@@ -21,6 +21,7 @@
     "mysql": "^2.13.0",
     "opusscript": "0.0.3",
     "request": "^2.81.0",
+    "twitter": "^1.7.1",
     "ytdl-core": "^0.14.4"
   }
 }

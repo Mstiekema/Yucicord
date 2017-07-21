@@ -2,19 +2,23 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const config = require('./config.js')
 const request = require("request");
+const songq = require('./modules/songqueue.js')
+const notif = require('./modules/notifier.js')
 
 client.on('ready', function() {
   console.log('Yucicord ready for action');
+  var defChannel = client.guilds.array()[0].defaultChannel
+  notif.youtube(defChannel);
+  notif.twitch(client);
+  
+  // Set member topic
   client.guilds.map(function(g) {
-    
     g.defaultChannel.setTopic('Users on server: ' + g.members.map(function() {}).length + ' | Users online: '+ g.presences.filter(function(value){return value.status == 'online'}).map(function() {}).length)
     console.log("Set the user info topic")
-    
     setInterval(function () {
       g.defaultChannel.setTopic('Users on server: ' + g.members.map(function() {}).length + ' | Users online: '+ g.presences.filter(function(value){return value.status == 'online'}).map(function() {}).length)
       console.log("Updated info topic")
-    }, 30000);
-    
+    }, 30000);    
   })
 });
 
