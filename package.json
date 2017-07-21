@@ -18,6 +18,9 @@
   "homepage": "https://github.com/Mstiekema/Yucicord#readme",
   "dependencies": {
     "discord.js": "^11.1.0",
-    "opusscript": "0.0.3"
+    "mysql": "^2.13.0",
+    "opusscript": "0.0.3",
+    "request": "^2.81.0",
+    "ytdl-core": "^0.14.4"
   }
 }
