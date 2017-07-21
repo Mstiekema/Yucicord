@@ -7,8 +7,7 @@ const notif = require('./modules/notifier.js')
 
 client.on('ready', function() {
   console.log('Yucicord ready for action');
-  var defChannel = client.guilds.array()[0].defaultChannel
-  notif.youtube(defChannel);
+  notif.youtube(client);
   notif.twitch(client);
   
   // Set member topic
@@ -20,6 +19,7 @@ client.on('ready', function() {
       console.log("Updated info topic")
     }, 30000);    
   })
+  notif.twitter(client);
 });
 
 client.on('message', function(message) {

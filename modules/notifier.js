@@ -1,4 +1,5 @@
 const request = require("request");
+const Twitter = require('twitter');
 const config = require('../config.js');
 var lastvid = new Array;
 var streamLive = new Array;
@@ -104,7 +105,8 @@ module.exports = {
     }, 60000);
   },
   youtube: function (c) {
-    var cId = "UCFWjri44xKabdBFbB4i3gVQ"
+    var cId = "UCNBGL6St1HR42u1lKbS4VJQ"
+    var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
         
     setInterval(function () {
       request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+cId+"&maxResults=10&order=date&type=video&key="+config.ytApiKey, 
@@ -119,10 +121,48 @@ module.exports = {
         
         if(lastvid[0] != body.items[0].id.videoId && (Math.round(new Date(body.items[0].snippet.publishedAt).getTime() / 1000) - lastvid[1] > 0)) {
           console.log("NEW VIDEO")
-          c.send("@everyone Nieuwe video staat online! '" + body.items[0].snippet.title + "' https://www.youtube.com/watch?v=" +  body.items[0].id.videoId)
+          chan.send("@everyone Nieuwe video staat online! '" + body.items[0].snippet.title + "' https://www.youtube.com/watch?v=" +  body.items[0].id.videoId)
           lastvid[0] = body.items[0].id.videoId
         }
       })
     }, 60000);
+  },
+  twitter: function (c) {
+    var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
+    var users = [367305627, 332482499, 1201956109]
+    var client = new Twitter({
+      consumer_key: config.key,
+      consumer_secret: config.secret,
+      access_token_key: config.accKey,
+      access_token_secret: config.accSecret
+    });
+    
+    client.stream('statuses/filter', {'follow': users.join(",")}, function(stream) {
+      stream.on('data', function(event) {
+        console.log("NEW TWEET INC")
+        if(users.indexOf(event.user.id) == -1) return
+        console.log("TWEET FROM VIP")
+        const embed = {
+          "color": 3447003,
+          "author": {
+            "name": event.user["name"],
+            "url": "https://www.twitter.com/"+event.user["screen_name"]+"/status/"+event.id,
+            "icon_url": event.user["profile_image_url"]
+          },
+          "fields": [
+            {
+              "name": "Tweet",
+              "value": event.text
+            }
+          ]
+        };  
+        
+        chan.send("Nieuwe tweet van " + event.user["screen_name"] + "! ", { embed })
+      });
+      
+      stream.on('error', function(error) {
+        throw error;
+      });
+    });
   },
 }
