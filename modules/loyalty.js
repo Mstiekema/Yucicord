@@ -6,6 +6,12 @@ const activeUsers = new Array;
 module.exports = {
   points: function(client) {
     client.on('message', function(message) {
+      if(message.content.startsWith("!specialpointtest")) {
+        db.query('select * from user where userId = ?', message.author.id, function(err, result) {
+          message.reply("you have " + result[0].points + " points.")
+        })
+      }
+      
       var userInfo = {
         username: message.author.username,
         id: message.author.id
@@ -41,7 +47,6 @@ module.exports = {
       }
     }, 300000);
     setInterval(function () {
-      console.log(activeUsers)
       for (var i = 0; i <= activeUsers.length; i++) {
         if(i == activeUsers.length) return activeUsers.length = 0
         var userInfo = {
