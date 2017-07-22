@@ -105,7 +105,7 @@ module.exports = {
     }, 60000);
   },
   youtube: function (c) {
-    var cId = "UCNBGL6St1HR42u1lKbS4VJQ"
+    var cId = "UCc3zzw5LV0BISa1NG-DROww"
     var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
         
     setInterval(function () {
