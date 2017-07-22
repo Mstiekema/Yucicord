@@ -15,22 +15,6 @@ client.on('ready', function() {
 });
 
 client.on('message', function(message) {
-  if (message.content == '!serverinfo') {
-    if(!message.member["_roles"][0]) return
-    message.channel.send({embed: {
-      color: Math.floor(Math.random() * 10000000),
-      "author": {
-        "name": message.guild.name,
-        "icon_url": message.guild.icon
-      },
-      description: 'Users on server: ' + message.guild.members.map(function() {}).length + ' | Users online: '+ message.guild.presences.filter(function(value){return value.status == 'online'}).map(function() {}).length,
-      timestamp: new Date(),
-      footer: {
-        icon_url: client.user.avatarURL,
-        text: "© Mstiekema | Yucicord "
-      }
-    }});
-  }
   songq.sr(message);
 });
 
