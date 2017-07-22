@@ -16,7 +16,7 @@ client.on('ready', function() {
 
 client.on('message', function(message) {
   if (message.content == '!serverinfo') {
-    console.log(message)
+    if(!message.member["_roles"][0]) return
     message.channel.send({embed: {
       color: Math.floor(Math.random() * 10000000),
       "author": {
