@@ -13,4 +13,13 @@ db.query(
 	function (err, result) {if (err) {return}}
 )
 
+db.query(
+	'CREATE TABLE user (' +
+	'name VARCHAR(32),' +
+	'userId VARCHAR(20) PRIMARY KEY,' +
+	'points INT,' +
+	'level INT)',
+	function (err, result) {if (err) {return}}
+)
+
 db.end();
