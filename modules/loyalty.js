@@ -6,9 +6,15 @@ const activeUsers = new Array;
 module.exports = {
   points: function(client) {
     client.on('message', function(message) {
-      if(message.content.startsWith("!specialpointtest")) {
+      if(message.content.startsWith("!points")) {
         db.query('select * from user where userId = ?', message.author.id, function(err, result) {
-          message.reply("you have " + result[0].points + " points.")
+          var chan = client.guilds.array()[1].channels.find('name', message.channel.name)
+          var msg = "you have " + result[0].points + " points."
+          message.reply(msg)
+          setTimeout(function () {
+            message.delete()
+            if(chan.messages.find('content', "<@" + message.author.id + ">, " + msg)) chan.messages.find('content', "<@" + message.author.id + ">, " + msg).delete()
+          }, 5000);
         })
       }
       
