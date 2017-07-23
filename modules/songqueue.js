@@ -36,7 +36,7 @@ function playSongInChannel(c, m) {
 
 module.exports = {
   sr: function (c, message) {
-    if (message.content.startsWith('!pl')) {
+    if (message.content.startsWith('!sr')) {
       if(message.channel.name != "muziek") return
       var link = message.content.substring(4, message.content.length)
       var testIfLink = String(link).match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/);
@@ -55,26 +55,26 @@ module.exports = {
       function getYTInfo(id, message) {
       	var url = "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + config.ytApiKey + "%20&part=snippet,contentDetails,statistics,status"
       	request(url, function (error, response, body) {
-      		info = JSON.parse(body)
-      		if (info.items[0] == null) {
-      			return message.reply("This isn't a valid YT video, plese try again")
-      		}
-      		base = info.items[0]
-      		var length = base.contentDetails.duration
-      		var reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
-      		var hours = 0, minutes = 0, seconds = 0, totalseconds;
-      	  	var matches = reptms.exec(length);
-      		if (matches[1]) hours = Number(matches[1]);
-      		if (matches[2]) minutes = Number(matches[2]);
-      	    if (matches[3]) seconds = Number(matches[3]);
-      	    totalseconds = Number(hours * 3600  + minutes * 60 + seconds);
-      		var title = base.snippet.title
-      		var songInfo = {
-      			title: base.snippet.title,
-      			thumb: base.snippet.thumbnails.default.url,
-      			name: message.author.username,
-      			length: totalseconds,
-      			songid: id
+          info = JSON.parse(body)
+          if (info.items[0] == null) {
+            	return message.reply("This isn't a valid YT video, plese try again")
+          }
+          base = info.items[0]
+          var length = base.contentDetails.duration
+          var reptms = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/;
+          var hours = 0, minutes = 0, seconds = 0, totalseconds;
+          var matches = reptms.exec(length);
+          if (matches[1]) hours = Number(matches[1]);
+          if (matches[2]) minutes = Number(matches[2]);
+          if (matches[3]) seconds = Number(matches[3]);
+          totalseconds = Number(hours * 3600  + minutes * 60 + seconds);
+          var title = base.snippet.title
+          var songInfo = {
+            title: base.snippet.title,
+            thumb: base.snippet.thumbnails.default.url,
+            name: message.author.username,
+            length: totalseconds,
+            songid: id
       		}
           db.query('insert into songrequest set ?', songInfo, function(err, result) {if (err) {return}})
       	}
@@ -124,6 +124,39 @@ module.exports = {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if (!result[0]) return chan.send("Er wordt op het moment geen muziek afgespeeld")
         chan.send("Op het moment wordt " + result[0].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[0].name + " | https://www.youtube.com/watch?v=" + result[0].songid)
+      })
+    }
+    if(message.content.startsWith("!q")) {
+      db.query('select * from songrequest where playState = 0', function(err, result) {
+        if (!result[0]) return chan.send("Er staat geen muziek in de queue")
+        var q = new Array;
+        var desc = new String;
+        for(var i = 0; i < result.length; i++) {
+          var time = Math.floor(result[i].length / 60) + ":" + Math.floor(result[i].length % 60)
+          if (i == 0) {
+            var msg = {
+              "name": "[NOW PLAYING] " + result[i].title,
+              "value": "Gerequest door: " + result[i].name + " | "+ time
+            }
+          } else {
+            var msg = {
+              "name": "[" + i + "] " + result[i].title,
+              "value": "Gerequest door: " + result[i].name + " | "+ time
+            }
+          }
+          q.push(msg)
+        }
+        const embed = {
+          "color": 15158332,
+          "timestamp": new Date(),
+          "description": " ﱞ ",
+          "author": {
+            name: "Songqueue voor " + message.guild.name,
+            "icon_url":  c.user.avatarURL
+          },
+          "fields": q
+        }
+        chan.send({embed})
       })
     }
     if(message.content.startsWith("!next")) {
