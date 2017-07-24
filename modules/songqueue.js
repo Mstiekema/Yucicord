@@ -6,7 +6,7 @@ var currStream;
 var conn;
 
 function connToChan(c, message) {
-  var chan = c.guilds.array()[1].channels.find('name', 'muziek')
+  var chan = c.guilds.array()[0].channels.find('name', 'muziek')
   if (message.member.voiceChannel ) {
     message.member.voiceChannel.join()
     .then(connection => {
@@ -28,7 +28,7 @@ function playSongInChannel(c, m) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if(result[0]) db.query('update songrequest set playState = 1 where songid = ?', result[0].songid, function(err, result) {return})
         if(!result[1]) return c.send("Songqueue is nu leeg")
-        playSongInChannel(c)
+        playSongInChannel(c, m)
       })
     })
   })
@@ -83,7 +83,8 @@ module.exports = {
             message.member.voiceChannel.join()
             .then(connection => {
               conn = connection
-              playSongInChannel(c, message)
+              var chan = c.guilds.array()[0].channels.find('name', 'muziek')
+              playSongInChannel(chan, message)
             })
             .catch(console.log);
           }
@@ -93,10 +94,9 @@ module.exports = {
   },
   songComm: function(c, message) {
     if(message.channel.name != "muziek") return
-    var chan = c.guilds.array()[1].channels.find('name', 'muziek')
+    var chan = c.guilds.array()[0].channels.find('name', 'muziek')
     if(message.content.startsWith("!start")) {
       if(conn) return
-      if(conn.speaking) return
       connToChan(c, message)
       chan.send(":arrow_forward: Muziek is gestart")
       setTimeout(function () {

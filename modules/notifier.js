@@ -19,7 +19,7 @@ module.exports = {
         }
       }
       request(info, function (error, response, body) {
-        if(body == "undefined") return
+        if(body == undefined) return
         body = JSON.parse(body)
         
         if(!streamLive[0]) {
