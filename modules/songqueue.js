@@ -15,7 +15,7 @@ function connToChan(c, message) {
     })
     .catch(console.log);
   } else {
-    message.reply("Je moet het muziek kanaal zitten voordat je de muziek kan starten ;)")
+    message.reply("Je moet in het muziek kanaal zitten voordat je de muziek kan starten ;)")
   }
 }
 
@@ -41,23 +41,23 @@ module.exports = {
       var link = message.content.substring(4, message.content.length)
       var testIfLink = String(link).match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/);
       if (testIfLink != null) {
-        getYTInfo(testIfLink[1], message)
+        getYTInfo(testIfLink[1], message, c)
       } else if (link.length == 11){
-        getYTInfo(link, message)
+        getYTInfo(link, message, c)
       } else {
         var url = "https://www.googleapis.com/youtube/v3/search?part=id&q=" + link + "&key=" + config.ytApiKey
         request(url, function (error, response, body) {
           var id = JSON.parse(body).items[0].id.videoId
-          getYTInfo(id, message)
+          getYTInfo(id, message, c)
         })
       }
       
-      function getYTInfo(id, message) {
+      function getYTInfo(id, message, c) {
       	var url = "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + config.ytApiKey + "%20&part=snippet,contentDetails,statistics,status"
       	request(url, function (error, response, body) {
           info = JSON.parse(body)
           if (info.items[0] == null) {
-            	return message.reply("This isn't a valid YT video, plese try again")
+            	return message.reply("This isn't a valid YT video, please try again")
           }
           base = info.items[0]
           var length = base.contentDetails.duration
@@ -77,6 +77,16 @@ module.exports = {
             songid: id
       		}
           db.query('insert into songrequest set ?', songInfo, function(err, result) {if (err) {return}})
+          message.reply("Succesvol '" + songInfo.title + "' toegevoegd aan de queue!")
+          if (message.member.voiceChannel ) {
+            if(conn && conn.speaking) return
+            message.member.voiceChannel.join()
+            .then(connection => {
+              conn = connection
+              playSongInChannel(c, message)
+            })
+            .catch(console.log);
+          }
       	}
       )}
     }
@@ -85,7 +95,14 @@ module.exports = {
     if(message.channel.name != "muziek") return
     var chan = c.guilds.array()[1].channels.find('name', 'muziek')
     if(message.content.startsWith("!start")) {
+      if(conn) return
+      if(conn.speaking) return
       connToChan(c, message)
+      chan.send(":arrow_forward: Muziek is gestart")
+      setTimeout(function () {
+        message.delete()
+        if(chan.messages.find('content', ":arrow_forward: Muziek is gestart")) chan.messages.find('content', ":arrow_forward: Muziek is gestart").delete()
+      }, 4000);
     }
     if(message.content.startsWith("!pause")) {
       if(!message.member["_roles"][0]) return
@@ -95,7 +112,7 @@ module.exports = {
       setTimeout(function () {
         message.delete()
         if(chan.messages.find('content', ":pause_button: Muziek is gepauzeerd")) chan.messages.find('content', ":pause_button: Muziek is gepauzeerd").delete()
-      }, 7000);
+      }, 5000);
       currStream.pause()
     }
     if(message.content.startsWith("!resume")) {
@@ -106,7 +123,7 @@ module.exports = {
       setTimeout(function () {
         message.delete()
         if(chan.messages.find('content', ":play_pause: Muziek is hervat")) chan.messages.find('content', ":play_pause: Muziek is hervat").delete()
-      }, 7000);
+      }, 5000);
       currStream.resume()
     }
     if(message.content.startsWith("!skip")) {
@@ -117,18 +134,34 @@ module.exports = {
         if(!result[0]) return chan.send("Songqueue is nu leeg")
         const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
         currStream = conn.playStream(stream, { seek: 0, volume: 1 });
-        chan.send("Huidig nummer is overgeslagen")
+        chan.send(":fast_forward: Huidig nummer is overgeslagen")
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
+        }, 5000);
       })
     }
     if(message.content.startsWith("!np")) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
-        if (!result[0]) return chan.send("Er wordt op het moment geen muziek afgespeeld")
-        chan.send("Op het moment wordt " + result[0].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[0].name + " | https://www.youtube.com/watch?v=" + result[0].songid)
+        if (!result[0]) return
+        var msg = "Op het moment wordt " + result[0].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[0].name + " | https://www.youtube.com/watch?v=" + result[0].songid
+        chan.send(msg)
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', msg)) chan.messages.find('content', msg).delete()
+        }, 5000);
       })
     }
     if(message.content.startsWith("!q")) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
-        if (!result[0]) return chan.send("Er staat geen muziek in de queue")
+        if (!result[0]) {
+          chan.send("Er staat geen muziek in de queue")
+          setTimeout(function () {
+            message.delete()
+            if(chan.messages.find('content', "Er staat geen muziek in de queue")) chan.messages.find('content', "Er staat geen muziek in de queue").delete()
+          }, 5000);
+          return
+        }
         var q = new Array;
         var desc = new String;
         for(var i = 0; i < result.length; i++) {
@@ -157,13 +190,33 @@ module.exports = {
           "fields": q
         }
         chan.send({embed})
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', '')) chan.messages.find('content', '').delete()
+        }, 10000);
       })
     }
     if(message.content.startsWith("!next")) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if (!result[1]) return chan.send("Er wordt hierna geen muziek afgespeeld")
-        chan.sen("Hierna wordt " + result[1].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[1].name + " | https://www.youtube.com/watch?v=" + result[1].songid)
+        chan.send("Hierna wordt " + result[1].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[1].name + " | https://www.youtube.com/watch?v=" + result[1].songid)
       })
+    }
+    if(message.content.startsWith("!shelp")) {
+      var msg = "**Songbot commands** \
+``` \
+!sr LINK --> Voeg een nummer toe aan de queue \n \
+!start --> Start de muziek, als je in een kanaal zit \n \
+!q --> Zie welke muziek er in de queue / wachtrij staan \n \
+!np --> Laat het nummer zien dat nu wordt afgespeeld \n \
+!next --> Zie welk nummer komt na het huidige nummer \n \
+!skip --> Slaat het nummer over dat nu wordt afgespeeld [MOD ONLY] \
+```"
+      chan.send(msg)
+      setTimeout(function () {
+        message.delete()
+        if(chan.messages.find('content', msg)) chan.messages.find('content', msg).delete()
+      }, 10000);
     }
   }
 }

@@ -7,7 +7,7 @@ var msg;
 
 module.exports = {
   twitch: function (c) {
-    var cId = 51068984
+    var cId = 64690539
     var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
     
     setInterval(function () {
