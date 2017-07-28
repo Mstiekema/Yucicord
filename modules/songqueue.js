@@ -37,6 +37,7 @@ function playSongInChannel(c, m) {
 module.exports = {
   sr: function (c, message) {
     if (message.content.startsWith('!sr')) {
+      if(message.content == '!sr') return
       if(message.channel.name != "muziek") return
       var link = message.content.substring(4, message.content.length)
       var testIfLink = String(link).match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/);
@@ -76,18 +77,31 @@ module.exports = {
             length: totalseconds,
             songid: id
       		}
-          db.query('insert into songrequest set ?', songInfo, function(err, result) {if (err) {return}})
-          message.reply("Succesvol '" + songInfo.title + "' toegevoegd aan de queue!")
-          if (message.member.voiceChannel ) {
-            if(conn && conn.speaking) return
-            message.member.voiceChannel.join()
-            .then(connection => {
-              conn = connection
-              var chan = c.guilds.array()[0].channels.find('name', 'muziek')
-              playSongInChannel(chan, message)
-            })
-            .catch(console.log);
-          }
+          
+          db.query('select * from songrequest where playState = 0', function(err, result) {
+            var allSongs = result.map(function(x) {return x.title})
+            var allUsers = result.map(function(x) {return x.name})
+            var userTimes = allUsers.filter(function(b) {return b == message.author.username;})
+            var uLength = userTimes.length
+            if(allSongs.indexOf(songInfo.title) != -1) {
+              return message.reply("Dit nummer staat al in de queue")
+            } else if(uLength > 3) {
+              return message.reply("Je hebt teveel nummers in de queue staan, wacht een tijdje voordat je meer liedjes toegevoegd.")
+            } else {
+              db.query('insert into songrequest set ?', songInfo, function(err, result) {if (err) {return}})
+              message.reply("Succesvol '" + songInfo.title + "' toegevoegd aan de queue!")
+              if (message.member.voiceChannel ) {
+                if(conn && conn.speaking) return
+                message.member.voiceChannel.join()
+                .then(connection => {
+                  conn = connection
+                  var chan = c.guilds.array()[0].channels.find('name', 'muziek')
+                  playSongInChannel(chan, message)
+                })
+                .catch(console.log);
+              }
+            }
+          })
       	}
       )}
     }
@@ -171,6 +185,8 @@ module.exports = {
               "name": "[NOW PLAYING] " + result[i].title,
               "value": "Gerequest door: " + result[i].name + " | "+ time
             }
+          } else if (i == 10) {
+            return
           } else {
             var msg = {
               "name": "[" + i + "] " + result[i].title,
@@ -182,7 +198,7 @@ module.exports = {
         const embed = {
           "color": 15158332,
           "timestamp": new Date(),
-          "description": " ﱞ ",
+          "description": "Queue length: "+result.length+" nummers. \n ﱞ ",
           "author": {
             name: "Songqueue voor " + message.guild.name,
             "icon_url":  c.user.avatarURL
