@@ -155,12 +155,15 @@ module.exports = {
         if (usrs == 6 || usrs == 7) usrsNeeded = 3;
         if (usrs == 8 || usrs == 9) usrsNeeded = 4;
         if (usrs > 9) usrsNeeded = 5;
-        skipUsrs.push(message.author.username)
-        
-        if(skipUsrs.length == usrsNeeded) {
-          doSkip()
+        if (skipUsrs.indexOf(message.author.username) == -1) {
+          skipUsrs.push(message.author.username)
+          if(skipUsrs.length >= usrsNeeded) {
+            doSkip()
+          } else {
+            chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
+          }
         } else {
-          chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
+          message.reply("Je kan niet meerdere keren stemmen om te skippen")
         }
       }
       function doSkip() {
