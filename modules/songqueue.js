@@ -214,15 +214,16 @@ module.exports = {
               "name": "[NOW PLAYING] " + result[i].title,
               "value": "Gerequest door: " + result[i].name + " | "+ time
             }
-          } else if (i == 10) {
-            return
+            q.push(msg)
           } else {
-            var msg = {
-              "name": "[" + i + "] " + result[i].title,
-              "value": "Gerequest door: " + result[i].name + " | "+ time
+            if (i <= 10) {
+              var msg = {
+                "name": "[" + i + "] " + result[i].title,
+                "value": "Gerequest door: " + result[i].name + " | "+ time
+              }
+              q.push(msg)
             }
           }
-          q.push(msg)
         }
         const embed = {
           "color": 15158332,
