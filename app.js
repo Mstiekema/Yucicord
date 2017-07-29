@@ -16,7 +16,6 @@ client.on('ready', function() {
 
 client.on('message', function(message) {
   songq.sr(client, message);
-  songq.songComm(client, message);
 });
 
 client.login(config.token);

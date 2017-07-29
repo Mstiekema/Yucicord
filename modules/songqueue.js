@@ -2,43 +2,46 @@ const request = require("request");
 const ytdl = require('ytdl-core');
 const config = require('../config.js');
 const db = require('./db.js').connection;
+var skipUsrs = new Array;
 var currStream;
 var conn;
 
-function connToChan(c, message) {
-  var chan = c.guilds.array()[0].channels.find('name', 'muziek')
-  if (message.member.voiceChannel ) {
-    message.member.voiceChannel.join()
-    .then(connection => {
-      conn = connection
-      playSongInChannel(chan, message)
-    })
-    .catch(console.log);
-  } else {
-    message.reply("Je moet in het muziek kanaal zitten voordat je de muziek kan starten ;)")
-  }
-}
-
-function playSongInChannel(c, m) {
-  db.query('select * from songrequest where playState = 0', function(err, result) {
-    if(!result[0]) return m.reply("Er kan geen muziek worden afgespeeld als er geen muziek in de queue staat")
-    const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
-    currStream = conn.playStream(stream, { seek: 0, volume: 1 });
-    currStream.on('end', () => {
-      db.query('select * from songrequest where playState = 0', function(err, result) {
-        if(result[0]) db.query('update songrequest set playState = 1 where songid = ?', result[0].songid, function(err, result) {return})
-        if(!result[1]) return c.send("Songqueue is nu leeg")
-        playSongInChannel(c, m)
-      })
-    })
-  })
-}
-
 module.exports = {
   sr: function (c, message) {
+    if(message.channel.name != "muziek") return
+    var chan = c.guilds.array()[0].channels.find('name', 'muziek')
+    
+    function connToChan(c, message) {
+      if (message.member.voiceChannel ) {
+        message.member.voiceChannel.join()
+        .then(connection => {
+          conn = connection
+          playSongInChannel(chan, message)
+        })
+        .catch(console.log);
+      } else {
+        message.reply("Je moet in het muziek kanaal zitten voordat je de muziek kan starten ;)")
+      }
+    }
+    
+    function playSongInChannel(c, m) {
+      db.query('select * from songrequest where playState = 0', function(err, result) {
+        if(!result[0]) return m.reply("Er kan geen muziek worden afgespeeld als er geen muziek in de queue staat")
+        skipUsrs.length = 0
+        const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
+        currStream = conn.playStream(stream, { seek: 0, volume: 1 });
+        currStream.on('end', () => {
+          db.query('select * from songrequest where playState = 0', function(err, result) {
+            if(result[0]) db.query('update songrequest set playState = 1 where songid = ?', result[0].songid, function(err, result) {return})
+            if(!result[1]) return c.send("Songqueue is nu leeg")
+            playSongInChannel(c, m)
+          })
+        })
+      })
+    }
+    
     if (message.content.startsWith('!sr')) {
       if(message.content == '!sr') return
-      if(message.channel.name != "muziek") return
       var link = message.content.substring(4, message.content.length)
       var testIfLink = String(link).match(/(?:https?:\/{2})?(?:w{3}\.)?youtu(?:be)?\.(?:com|be)(?:\/watch\?v=|\/)([^\s&]+)/);
       if (testIfLink != null) {
@@ -78,6 +81,8 @@ module.exports = {
             songid: id
       		}
           
+          if(songInfo.length > 660) return message.reply("Je mag niet nummers aanvragen die langer zijn dan 11 minuten.")
+          
           db.query('select * from songrequest where playState = 0', function(err, result) {
             var allSongs = result.map(function(x) {return x.title})
             var allUsers = result.map(function(x) {return x.name})
@@ -95,7 +100,6 @@ module.exports = {
                 message.member.voiceChannel.join()
                 .then(connection => {
                   conn = connection
-                  var chan = c.guilds.array()[0].channels.find('name', 'muziek')
                   playSongInChannel(chan, message)
                 })
                 .catch(console.log);
@@ -105,10 +109,7 @@ module.exports = {
       	}
       )}
     }
-  },
-  songComm: function(c, message) {
-    if(message.channel.name != "muziek") return
-    var chan = c.guilds.array()[0].channels.find('name', 'muziek')
+    
     if(message.content.startsWith("!start")) {
       if(conn) return
       connToChan(c, message)
@@ -118,6 +119,7 @@ module.exports = {
         if(chan.messages.find('content', ":arrow_forward: Muziek is gestart")) chan.messages.find('content', ":arrow_forward: Muziek is gestart").delete()
       }, 4000);
     }
+    
     if(message.content.startsWith("!pause")) {
       if(!message.member["_roles"][0]) return
       if(!currStream) return
@@ -129,6 +131,7 @@ module.exports = {
       }, 5000);
       currStream.pause()
     }
+    
     if(message.content.startsWith("!resume")) {
       if(!message.member["_roles"][0]) return
       if(!currStream) return
@@ -140,21 +143,43 @@ module.exports = {
       }, 5000);
       currStream.resume()
     }
+    
     if(message.content.startsWith("!skip")) {
-      if(!message.member["_roles"][0]) return
-      if(!currStream) return
-      currStream = null
-      db.query('select * from songrequest where playState = 0', function(err, result) {
-        if(!result[0]) return chan.send("Songqueue is nu leeg")
-        const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
-        currStream = conn.playStream(stream, { seek: 0, volume: 1 });
-        chan.send(":fast_forward: Huidig nummer is overgeslagen")
-        setTimeout(function () {
-          message.delete()
-          if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
-        }, 5000);
-      })
+      if(message.member["_roles"][0]) {
+        doSkip()
+      } else {
+        var usrs = conn.channel.members.array().length
+        var usrsNeeded;
+        if (usrs < 4) usrsNeeded = 1;
+        if (usrs == 4 || usrs == 5) usrsNeeded = 2;
+        if (usrs == 6 || usrs == 7) usrsNeeded = 3;
+        if (usrs == 8 || usrs == 9) usrsNeeded = 4;
+        if (usrs > 9) usrsNeeded = 5;
+        skipUsrs.push(message.author.username)
+        
+        if(skipUsrs.length == usrsNeeded) {
+          doSkip()
+        } else {
+          chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
+        }
+      }
+      function doSkip() {
+        if(!currStream) return
+        currStream = null
+        skipUsrs.length = 0
+        db.query('select * from songrequest where playState = 0', function(err, result) {
+          if(!result[1]) return chan.send("Songqueue is nu leeg")
+          const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
+          currStream = conn.playStream(stream, { seek: 0, volume: 1 });
+          chan.send(":fast_forward: Huidig nummer is overgeslagen")
+          setTimeout(function () {
+            message.delete()
+            if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
+          }, 5000);
+        })  
+      }
     }
+    
     if(message.content.startsWith("!np")) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if (!result[0]) return
@@ -166,6 +191,7 @@ module.exports = {
         }, 5000);
       })
     }
+    
     if(message.content.startsWith("!q")) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if (!result[0]) {
@@ -218,6 +244,7 @@ module.exports = {
         chan.send("Hierna wordt " + result[1].title + " afgespeeld. Dit nummer werd aangevraagd door " + result[1].name + " | https://www.youtube.com/watch?v=" + result[1].songid)
       })
     }
+    
     if(message.content.startsWith("!shelp")) {
       var msg = "**Songbot commands** \
 ``` \
@@ -233,6 +260,6 @@ module.exports = {
         message.delete()
         if(chan.messages.find('content', msg)) chan.messages.find('content', msg).delete()
       }, 10000);
-    }
+    }    
   }
 }
