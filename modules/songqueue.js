@@ -144,42 +144,45 @@ module.exports = {
       currStream.resume()
     }
     
-    if(message.content.startsWith("!skip")) {
+    function doSkip() {
+      if(!currStream) return
+      currStream = null
+      skipUsrs.length = 0
+      db.query('select * from songrequest where playState = 0', function(err, result) {
+        if(!result[1]) return chan.send("Songqueue is nu leeg")
+        const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
+        currStream = conn.playStream(stream, { seek: 0, volume: 1 });
+        chan.send(":fast_forward: Huidig nummer is overgeslagen")
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
+        }, 5000);
+      })  
+    }
+    
+    if(message.content.startsWith("!fskip")) {
       if(message.member["_roles"][0]) {
         doSkip()
-      } else {
-        var usrs = conn.channel.members.array().length
-        var usrsNeeded;
-        if (usrs < 4) usrsNeeded = 1;
-        if (usrs == 4 || usrs == 5) usrsNeeded = 2;
-        if (usrs == 6 || usrs == 7) usrsNeeded = 3;
-        if (usrs == 8 || usrs == 9) usrsNeeded = 4;
-        if (usrs > 9) usrsNeeded = 5;
-        if (skipUsrs.indexOf(message.author.username) == -1) {
-          skipUsrs.push(message.author.username)
-          if(skipUsrs.length >= usrsNeeded) {
-            doSkip()
-          } else {
-            chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
-          }
-        } else {
-          message.reply("Je kan niet meerdere keren stemmen om te skippen")
-        }
       }
-      function doSkip() {
-        if(!currStream) return
-        currStream = null
-        skipUsrs.length = 0
-        db.query('select * from songrequest where playState = 0', function(err, result) {
-          if(!result[1]) return chan.send("Songqueue is nu leeg")
-          const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
-          currStream = conn.playStream(stream, { seek: 0, volume: 1 });
-          chan.send(":fast_forward: Huidig nummer is overgeslagen")
-          setTimeout(function () {
-            message.delete()
-            if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
-          }, 5000);
-        })  
+    }
+    
+    if(message.content.startsWith("!skip")) {
+      var usrs = conn.channel.members.array().length
+      var usrsNeeded;
+      if (usrs < 4) usrsNeeded = 2;
+      if (usrs == 4 || usrs == 5) usrsNeeded = 2;
+      if (usrs == 6 || usrs == 7) usrsNeeded = 3;
+      if (usrs == 8 || usrs == 9) usrsNeeded = 4;
+      if (usrs > 9) usrsNeeded = 5;
+      if (skipUsrs.indexOf(message.author.username) == -1) {
+        skipUsrs.push(message.author.username)
+        if(skipUsrs.length >= usrsNeeded) {
+          doSkip()
+        } else {
+          chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
+        }
+      } else {
+        message.reply("Je kan niet meerdere keren stemmen om te skippen")
       }
     }
     
@@ -257,7 +260,8 @@ module.exports = {
 !q --> Zie welke muziek er in de queue / wachtrij staan \n \
 !np --> Laat het nummer zien dat nu wordt afgespeeld \n \
 !next --> Zie welk nummer komt na het huidige nummer \n \
-!skip --> Slaat het nummer over dat nu wordt afgespeeld [MOD ONLY] \
+!skip --> Stem op het skippen van een nummer \n \
+!fskip --> Slaat een nummer over [MOD ONLY] \
 ```"
       chan.send(msg)
       setTimeout(function () {
