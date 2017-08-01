@@ -18,7 +18,7 @@ db.query(
 	'name VARCHAR(32),' +
 	'userId VARCHAR(20) PRIMARY KEY,' +
 	'points INT,' +
-	'level INT)',
+	'time INT)',
 	function (err, result) {if (err) {return}}
 )
 

@@ -11,11 +11,12 @@ client.on('ready', function() {
   notif.youtube(client);
   notif.twitch(client);
   notif.twitter(client);
-  loyal.points(client);
+  loyal.rewardPoints(client);
 });
 
 client.on('message', function(message) {
   songq.sr(client, message);
+  loyal.pointComms(client, message);
 });
 
 client.login(config.token);
