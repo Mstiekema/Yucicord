@@ -88,7 +88,7 @@ module.exports = {
           
           if(streamLive[0] == "OFFLINE") {
             streamLive[0] = "LIVE"
-            msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/forsenlol"
+            msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/pascall"
             chan.send(msg, { embed });
             console.log("THE STREAM IS NOW LIVE FeelsGoodMan")
           } else {
