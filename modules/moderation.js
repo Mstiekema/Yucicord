@@ -17,7 +17,9 @@ module.exports = {
     if(msg[0] == "!clear" && message.content != "!clear") {
       var m = message.channel.messages
       var usr = msg[1]
-      var delMsgs = m.filter(function(u){if(u.author.username.toUpperCase() == usr.toUpperCase()) return u})
+      var delMsgs = m.filterArray(function(u){if(u.author.username.toUpperCase() == usr.toUpperCase()) return u})
+      if(delMsgs.length < 2) return
+      if(delMsgs.length > 50) delMsgs.splice(0, delMsgs.length - 50)
       message.channel.bulkDelete(delMsgs)
     }
   },
