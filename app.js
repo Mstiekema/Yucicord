@@ -19,6 +19,7 @@ client.on('message', function(message) {
   songq.sr(client, message);
   loyal.pointComms(client, message);
   mod.link(client, message);
+  mod.purge(client, message);
 });
 
 client.login(config.token);
