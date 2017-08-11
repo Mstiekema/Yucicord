@@ -125,10 +125,10 @@ module.exports = {
   twitter: function (c) {
     var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'twitter-feed')
     var client = new Twitter({
-      consumer_key: config.keys.key,
-      consumer_secret: config.keys.secret,
-      access_token_key: config.keys.accKey,
-      access_token_secret: config.keys.accSecret
+      consumer_key: config.keys.twitterKey,
+      consumer_secret: config.keys.twitterSecret,
+      access_token_key: config.keys.twitterAccKey,
+      access_token_secret: config.keys.twitterAccSecret
     });
     
     client.stream('statuses/filter', {'follow': config.info.twitterUsrs.join(",")}, function(stream) {
