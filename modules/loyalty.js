@@ -40,7 +40,7 @@ module.exports = {
           addPoints(userInfo, w)
         }
       }
-    }, 30000);
+    }, 300000);
     setInterval(function () {
       for (var i = 0; i <= activeUsers.length; i++) {
         if(i == activeUsers.length) return activeUsers.length = 0
@@ -52,7 +52,7 @@ module.exports = {
         }
         addPoints(userInfo)
       }
-    }, 30000);
+    }, 300000);
   },
   pointComms: function(c, message) {
     if(message.content.startsWith("!profile")) {
