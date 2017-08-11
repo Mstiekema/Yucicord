@@ -3,11 +3,11 @@ const Twitter = require('twitter');
 const config = require('../config.js');
 var lastvid = new Array;
 var streamLive = new Array;
-var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
 var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/" + config.info.streamerName
 
 module.exports = {
-  twitch: function (c) {    
+  twitch: function (c) {
+    var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
     setInterval(function () {
       var info = {
         url: 'https://api.twitch.tv/kraken/streams/' + config.info.twitchId,
@@ -101,7 +101,8 @@ module.exports = {
       })
     }, 60000);
   },
-  youtube: function (c) {        
+  youtube: function (c) {
+    var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
     setInterval(function () {
       request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+config.info.ytId+"&maxResults=10&order=date&type=video&key="+config.keys.ytApiKey, 
       function (error, response, body, channel) {
