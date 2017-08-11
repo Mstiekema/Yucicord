@@ -43,4 +43,4 @@ client.on('message', function(message) {
   } 
 });
 
-client.login(config.token);
+client.login(config.keys.token);
