@@ -56,20 +56,8 @@ module.exports = {
     }, 30000);
   },
   pointComms: function(c, message) {
-    if(message.content.startsWith("!points")) {
-      db.query('select * from user where userId = ?', message.author.id, function(err, result) {
-        if(!result[0]) return message.reply("Je hebt op het moment nog geen punten")
-        var chan = message.channel
-        var msg = "you have " + result[0].points + " points."
-        message.reply(msg)
-        setTimeout(function () {
-          message.delete()
-          if(chan.messages.find('content', "<@" + message.author.id + ">, " + msg)) chan.messages.find('content', "<@" + message.author.id + ">, " + msg).delete()
-        }, 5000);
-      })
-    }
     if(message.content.startsWith("!profile")) {
-      db.query('select * from user where userId = ?', message.author.id, function(err, result) {
+      db.query('SELECT points, time, z.rank FROM ( SELECT t.userId, t.points, t.time, @rownum := @rownum + 1 AS rank FROM user t, (SELECT @rownum := 0) r ORDER BY points DESC ) as z where userId = ?', message.author.id, function(err, result) {
         if(!result[0]) return message.reply("Je hebt op het moment nog geen punten")
         var points = result[0].points
         var timeT = result[0].time
@@ -85,7 +73,7 @@ module.exports = {
           var p =  Math.floor(timeT/timeStuffs[name]);
           if (p != 0) {
             totTime.push(" " + p + " " + name);
-            timeT %= timeStuffs[name]  
+            timeT %= timeStuffs[name]
           }
         }
         for(var name in timeStuffs) {
@@ -98,6 +86,10 @@ module.exports = {
         var level = 1 + Math.floor(0.3456 * Math.sqrt(points))
         var pfornlvl = Math.floor(Math.pow(((level) / 0.3456), 2))
         var chan = message.channel
+        var jD = new Date(message.member.guild.joinedTimestamp)
+        var aD = new Date(message.author.createdTimestamp)
+        var jy = jD.getFullYear(); var jm = jD.getMonth(); var jd = jD.getDate(); var jh = jD.getHours(); var jmi = jD.getMinutes(); var js = jD.getSeconds();
+        var ay = aD.getFullYear(); var am = aD.getMonth(); var ad = aD.getDate(); var ah = jD.getHours(); var ami = aD.getMinutes(); var as = aD.getSeconds();
         const embed = {
           "color": 10181046,
           "author": {
@@ -116,17 +108,28 @@ module.exports = {
               "inline": true
             },
             {
-              "name": "Tijd online",
-              "value": "Online: "+totTime+"\nActief: "+acTime,
+              "name": "Rank",
+              "value": result[0].rank,
               "inline": true
+            },
+            {
+              "name": "Tijd online",
+              "value": "Online: "+totTime+"\nActief: "+acTime
+            },
+            {
+              "name": "Account aangemaakt",
+              "value": ad + "/" + am + "/" + ay + " om " + ah + ":" + ami + ":" + as
+            },
+            {
+              "name": "Server gejoined",
+              "value": jd + "/" + jm + "/" + jy + " om " + jh + ":" + jmi + ":" + js
             }
           ]
         };
-        chan.send({embed})
-        setTimeout(function () {
+        chan.send({embed}).then(m => setTimeout(function () {
           message.delete()
-          if(chan.messages.find('content', '')) chan.messages.find('content', '').delete()
-        }, 7000);
+          m.delete()
+        }, 20000))
       })
     }
     if(message.content.startsWith("!leaderboard")) {
@@ -148,11 +151,10 @@ module.exports = {
           "title": "Top 10 users",
           "fields": q
         }
-        chan.send({embed})
-        setTimeout(function () {
+        chan.send({embed}).then(m => setTimeout(function () {
           message.delete()
-          if(chan.messages.find('content', '')) chan.messages.find('content', '').delete()
-        }, 10000);
+          m.delete()
+        }, 10000))
       })
     }
   }

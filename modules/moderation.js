@@ -2,7 +2,7 @@ module.exports = {
   purge: function(message) {
     var msg = message.content.split(" ")
     if(!message.member.hasPermission("MANAGE_MESSAGES")) return
-    if(msg[0] == "!purge" && message.content != "!purge") {
+    if(msg[0] == "!clear" && message.content != "!clear") {
       var nMsg = msg[1]
       var msgC = "Deleted " + nMsg + " messages."
       if(nMsg > 100) return message.reply("het maximale aantal berichten die je kan verwijderen is 100.")
@@ -12,7 +12,7 @@ module.exports = {
         if(message.channel.messages.find('content', msgC)) message.channel.messages.find('content', msgC).delete()
       }, 3000);
     }
-    if(msg[0] == "!clear" && message.content != "!clear") {
+    if(msg[0] == "!purge" && message.content != "!purge") {
       var m = message.channel.messages
       var usr = msg[1]
       var delMsgs = m.filterArray(function(u){if(u.author.username.toUpperCase() == usr.toUpperCase()) return u})
