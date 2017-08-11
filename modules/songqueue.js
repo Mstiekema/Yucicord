@@ -3,7 +3,7 @@ const ytdl = require('ytdl-core');
 const config = require('../config.js');
 const db = require('./db.js').connection;
 var skipUsrs = new Array;
-var currStream;
+var currStream = null;
 var conn;
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
         message.member.voiceChannel.join()
         .then(connection => {
           conn = connection
-          playSongInChannel(chan, message)
+          playSongInChannel(c, message, chan)
         })
         .catch(console.log);
       } else {
@@ -24,17 +24,24 @@ module.exports = {
       }
     }
     
-    function playSongInChannel(c, m) {
+    function playSongInChannel(c, m, chan) {
       db.query('select * from songrequest where playState = 0', function(err, result) {
         if(!result[0]) return m.reply("Er kan geen muziek worden afgespeeld als er geen muziek in de queue staat")
         skipUsrs.length = 0
         const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
         currStream = conn.playStream(stream, { seek: 0, volume: 1 });
+        c.user.setGame(result[0].title);
+        console.log("Set game to: " + result[0].title)
         currStream.on('end', () => {
           db.query('select * from songrequest where playState = 0', function(err, result) {
+            currStream = null
             if(result[0]) db.query('update songrequest set playState = 1 where songid = ?', result[0].songid, function(err, result) {return})
-            if(!result[1]) return c.send("Songqueue is nu leeg")
-            playSongInChannel(c, m)
+            if(!result[1]) {
+              c.user.setGame(null) 
+              chan.send("Songqueue is nu leeg")
+            } else {
+              playSongInChannel(c, m, chan)
+            }
           })
         })
       })
@@ -100,7 +107,7 @@ module.exports = {
                 message.member.voiceChannel.join()
                 .then(connection => {
                   conn = connection
-                  playSongInChannel(chan, message)
+                  playSongInChannel(c, message, chan)
                 })
                 .catch(console.log);
               }
@@ -149,10 +156,12 @@ module.exports = {
       currStream = null
       skipUsrs.length = 0
       db.query('select * from songrequest where playState = 0', function(err, result) {
-        if(!result[1]) return chan.send("Songqueue is nu leeg")
+        if(!result[0]) c.user.setGame(null)
+        if(!result[1]) return chan.send("Kan laatste nummer in de queue niet overslaan.")
         const stream = ytdl('https://www.youtube.com/watch?v=' + result[0].songid, { filter : 'audioonly' });
         currStream = conn.playStream(stream, { seek: 0, volume: 1 });
         chan.send(":fast_forward: Huidig nummer is overgeslagen")
+        c.user.setGame(result[0].title) 
         setTimeout(function () {
           message.delete()
           if(chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen")) chan.messages.find('content', ":fast_forward: Huidig nummer is overgeslagen").delete()
@@ -179,10 +188,19 @@ module.exports = {
         if(skipUsrs.length >= usrsNeeded) {
           doSkip()
         } else {
-          chan.send("Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")")
+          var msg = "Vote skip (" + skipUsrs.length + "/" + usrsNeeded + ")"
+          chan.send(msg)
+          setTimeout(function () {
+            message.delete()
+            if(chan.messages.find('content', msg)) chan.messages.find('content', msg).delete()
+          }, 10000);
         }
       } else {
         message.reply("Je kan niet meerdere keren stemmen om te skippen")
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', "Je kan niet meerdere keren stemmen om te skippen")) chan.messages.find('content', "Je kan niet meerdere keren stemmen om te skippen").delete()
+        }, 5000);
       }
     }
     
