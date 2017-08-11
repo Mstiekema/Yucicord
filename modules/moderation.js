@@ -1,7 +1,5 @@
-const config = require('../config.js');
-
 module.exports = {
-  purge: function(client, message) {
+  purge: function(message) {
     var msg = message.content.split(" ")
     if(!message.member.hasPermission("MANAGE_MESSAGES")) return
     if(msg[0] == "!purge" && message.content != "!purge") {
@@ -23,7 +21,7 @@ module.exports = {
       message.channel.bulkDelete(delMsgs)
     }
   },
-  link: function(client, message) {
+  link: function(message) {
     if(message.channel.name == "muziek") return
     if(message.member["_roles"][0]) return
     var urlReg = String(message.content).match(/(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[-A-Z0-9+&@#\/%=~_|$?!:,.])*(?:\([-A-Z0-9+&@#\/%=~_|$?!:,.]*\)|[A-Z0-9+&@#\/%=~_|$])/igm)

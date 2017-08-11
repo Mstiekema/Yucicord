@@ -3,7 +3,7 @@ const Twitter = require('twitter');
 const config = require('../config.js');
 var lastvid = new Array;
 var streamLive = new Array;
-var msg;
+var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/pascall"
 
 module.exports = {
   twitch: function (c) {
@@ -88,7 +88,6 @@ module.exports = {
           
           if(streamLive[0] == "OFFLINE") {
             streamLive[0] = "LIVE"
-            msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/pascall"
             chan.send(msg, { embed });
             console.log("THE STREAM IS NOW LIVE FeelsGoodMan")
           } else {

@@ -59,7 +59,7 @@ module.exports = {
     if(message.content.startsWith("!points")) {
       db.query('select * from user where userId = ?', message.author.id, function(err, result) {
         if(!result[0]) return message.reply("Je hebt op het moment nog geen punten")
-        var chan = c.guilds.array()[0].channels.find('name', message.channel.name)
+        var chan = message.channel
         var msg = "you have " + result[0].points + " points."
         message.reply(msg)
         setTimeout(function () {
@@ -97,7 +97,7 @@ module.exports = {
         }
         var level = 1 + Math.floor(0.3456 * Math.sqrt(points))
         var pfornlvl = Math.floor(Math.pow(((level) / 0.3456), 2))
-        var chan = c.guilds.array()[0].channels.find('name', message.channel.name)
+        var chan = message.channel
         const embed = {
           "color": 10181046,
           "author": {
@@ -127,6 +127,32 @@ module.exports = {
           message.delete()
           if(chan.messages.find('content', '')) chan.messages.find('content', '').delete()
         }, 7000);
+      })
+    }
+    if(message.content.startsWith("!leaderboard")) {
+      db.query('select * from user ORDER BY points DESC LIMIT 10', function(err, result) {
+        var chan = message.channel
+        var q = new Array;
+        var desc = new String;
+        for(var i = 0; i < result.length; i++) {
+          var lvl = 1 + Math.floor(0.3456 * Math.sqrt(result[i].points))
+          var pfornlvl = Math.floor(Math.pow(((lvl) / 0.3456), 2))
+          var msg = {
+            "name": "[" + (i+1) + "] " + result[i].name,
+            "value": "Points: **" + result[i].points + "** | Level: **" + lvl + "** | Progress: **" + result[i].points + "**/**" + pfornlvl + "**"
+          }
+          q.push(msg)
+        }
+        const embed = {
+          "color": 15158332,
+          "title": "Top 10 users",
+          "fields": q
+        }
+        chan.send({embed})
+        setTimeout(function () {
+          message.delete()
+          if(chan.messages.find('content', '')) chan.messages.find('content', '').delete()
+        }, 10000);
       })
     }
   }
