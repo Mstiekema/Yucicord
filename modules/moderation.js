@@ -7,10 +7,9 @@ module.exports = {
       var msgC = "Deleted " + nMsg + " messages."
       if(nMsg > 100) return message.reply("het maximale aantal berichten die je kan verwijderen is 100.")
       message.channel.bulkDelete(nMsg)
-      message.channel.send(msgC)
-      setTimeout(function () {
-        if(message.channel.messages.find('content', msgC)) message.channel.messages.find('content', msgC).delete()
-      }, 3000);
+      message.channel.send(msgC).then(m => setTimeout(function () {
+        m.delete()
+      }, 5000))
     }
     if(msg[0] == "!purge" && message.content != "!purge") {
       var m = message.channel.messages

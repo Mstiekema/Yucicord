@@ -1,5 +1,4 @@
 const request = require("request");
-const config = require('../config.js');
 const db = require('./db.js').connection;
 const activeUsers = new Array;
 

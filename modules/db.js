@@ -7,9 +7,9 @@ module.exports = {
     if (!connection) {
       connection = mysql.createConnection({
         host: 'localhost',
-        user: config.user,
-        password: config.password,
-        database: config.database,
+        user: config.info.user,
+        password: config.info.password,
+        database: config.info.database,
         port: 3306
       });
       connection.connect(function(err) {

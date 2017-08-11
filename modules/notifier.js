@@ -3,19 +3,17 @@ const Twitter = require('twitter');
 const config = require('../config.js');
 var lastvid = new Array;
 var streamLive = new Array;
-var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/pascall"
+var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
+var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/" + config.info.streamerName
 
 module.exports = {
-  twitch: function (c) {
-    var cId = 64690539
-    var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
-    
+  twitch: function (c) {    
     setInterval(function () {
       var info = {
-        url: 'https://api.twitch.tv/kraken/streams/' + cId,
+        url: 'https://api.twitch.tv/kraken/streams/' + config.info.twitchId,
         headers: {
           'Accept': 'application/vnd.twitchtv.v5+json',
-          'Client-ID': config.clientID
+          'Client-ID': config.keys.clientID
         }
       }
       request(info, function (error, response, body) {
@@ -103,12 +101,9 @@ module.exports = {
       })
     }, 60000);
   },
-  youtube: function (c) {
-    var cId = "UCc3zzw5LV0BISa1NG-DROww"
-    var chan = c.guilds.array()[0].channels.find('name', 'mededelingen')
-        
+  youtube: function (c) {        
     setInterval(function () {
-      request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+cId+"&maxResults=10&order=date&type=video&key="+config.ytApiKey, 
+      request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+config.info.ytId+"&maxResults=10&order=date&type=video&key="+config.keys.ytApiKey, 
       function (error, response, body, channel) {
         body = JSON.parse(body)
         
@@ -127,18 +122,17 @@ module.exports = {
     }, 60000);
   },
   twitter: function (c) {
-    var chan = c.guilds.array()[0].channels.find('name', 'twitter-feed')
-    var users = [1201956109]
+    var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'twitter-feed')
     var client = new Twitter({
-      consumer_key: config.key,
-      consumer_secret: config.secret,
-      access_token_key: config.accKey,
-      access_token_secret: config.accSecret
+      consumer_key: config.keys.key,
+      consumer_secret: config.keys.secret,
+      access_token_key: config.keys.accKey,
+      access_token_secret: config.keys.accSecret
     });
     
-    client.stream('statuses/filter', {'follow': users.join(",")}, function(stream) {
+    client.stream('statuses/filter', {'follow': config.info.twitterUsrs.join(",")}, function(stream) {
       stream.on('data', function(event) {
-        if(users.indexOf(event.user.id) == -1) return
+        if(config.info.twitterUsrs.indexOf(event.user.id) == -1) return
         if(event.text.startsWith("@")) return
         const embed = {
           "color": 3447003,

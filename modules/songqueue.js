@@ -9,7 +9,7 @@ var conn;
 module.exports = {
   sr: function (c, message) {
     if(message.channel.name != "muziek") return
-    var chan = c.guilds.array()[0].channels.find('name', 'muziek')
+    var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'muziek')
     
     function connToChan(c, message) {
       if (message.member.voiceChannel ) {
@@ -42,6 +42,7 @@ module.exports = {
             if(result[0]) db.query('update songrequest set playState = 1 where songid = ?', result[0].songid, function(err, result) {return})
             if(!result[1]) {
               c.user.setGame(null) 
+              conn.disconnect()
               chan.send("Songqueue is nu leeg").then(m => setTimeout(function () {
                 m.delete()
               }, 5000))
@@ -62,7 +63,7 @@ module.exports = {
       } else if (link.length == 11){
         getYTInfo(link, message, c)
       } else {
-        var url = "https://www.googleapis.com/youtube/v3/search?part=id&q=" + link + "&key=" + config.ytApiKey
+        var url = "https://www.googleapis.com/youtube/v3/search?part=id&q=" + link + "&key=" + config.keys.ytApiKey
         request(url, function (error, response, body) {
           var id = JSON.parse(body).items[0].id.videoId
           getYTInfo(id, message, c)
@@ -70,7 +71,7 @@ module.exports = {
       }
       
       function getYTInfo(id, message, c) {
-      	var url = "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + config.ytApiKey + "%20&part=snippet,contentDetails,statistics,status"
+      	var url = "https://www.googleapis.com/youtube/v3/videos?id=" + id + "&key=" + config.keys.ytApiKey + "%20&part=snippet,contentDetails,statistics,status"
       	request(url, function (error, response, body) {
           info = JSON.parse(body)
           if (info.items[0] == null) {
