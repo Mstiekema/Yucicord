@@ -1,6 +1,7 @@
 module.exports = {
   purge: function(message) {
     var msg = message.content.split(" ")
+    if(!message.member) return
     if(!message.member.hasPermission("MANAGE_MESSAGES")) return
     if(msg[0] == "!clear" && message.content != "!clear") {
       var nMsg = msg[1]

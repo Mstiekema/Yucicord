@@ -35,11 +35,9 @@ client.on('message', function(message) {
 !purge [USER] --> Verwijder berichten van een bepaalde gebruiker [MOD ONLY] \n \
 !fskip --> Slaat een nummer over [MOD ONLY] \
 ```"
-    chan.send(msg)
-    setTimeout(function () {
-      message.delete()
-      if(chan.messages.find('content', msg)) chan.messages.find('content', msg).delete()
-    }, 10000);
+    message.channel.send(msg).then(m => setTimeout(function () {
+      m.delete()
+    }, 5000))
   } 
 });
 
