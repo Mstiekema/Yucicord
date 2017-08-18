@@ -36,8 +36,9 @@ client.on('message', function(message) {
 !fskip --> Slaat een nummer over [MOD ONLY] \
 ```"
     message.channel.send(msg).then(m => setTimeout(function () {
+      message.delete()
       m.delete()
-    }, 5000))
+    }, 15000))
   } 
 });
 

@@ -1,6 +1,21 @@
 const request = require("request");
 const db = require('./db.js').connection;
 const activeUsers = new Array;
+var cooldowns = [];
+
+function cooldown(command, cooldown, exc) {
+  var cd = cooldown * 1000
+  if (cooldowns.indexOf(command) != -1) {
+    return
+  } else {
+    cooldowns.push(command)
+    setTimeout(function() {
+      var index = cooldowns.indexOf(command);
+      cooldowns.splice(index, 1);
+    }, cd);
+    exc()
+  }
+}
 
 module.exports = {
   rewardPoints: function(client) {
@@ -85,10 +100,10 @@ module.exports = {
         var level = 1 + Math.floor(0.3456 * Math.sqrt(points))
         var pfornlvl = Math.floor(Math.pow(((level) / 0.3456), 2))
         var chan = message.channel
-        var jD = new Date(message.member.guild.joinedTimestamp)
+        var jD = new Date(message.member.joinedTimestamp)
         var aD = new Date(message.author.createdTimestamp)
-        var jy = jD.getFullYear(); var jm = jD.getMonth(); var jd = jD.getDate(); var jh = jD.getHours(); var jmi = jD.getMinutes(); var js = jD.getSeconds();
-        var ay = aD.getFullYear(); var am = aD.getMonth(); var ad = aD.getDate(); var ah = jD.getHours(); var ami = aD.getMinutes(); var as = aD.getSeconds();
+        var jy = jD.getFullYear(); var jm = jD.getMonth() + 1; var jd = jD.getDate(); var jh = jD.getHours(); var jmi = jD.getMinutes(); var js = jD.getSeconds();
+        var ay = aD.getFullYear(); var am = aD.getMonth() + 1; var ad = aD.getDate(); var ah = jD.getHours(); var ami = aD.getMinutes(); var as = aD.getSeconds();
         const embed = {
           "color": 10181046,
           "author": {
@@ -125,10 +140,13 @@ module.exports = {
             }
           ]
         };
-        chan.send({embed}).then(m => setTimeout(function () {
-          message.delete()
-          m.delete()
-        }, 20000))
+        function profile() {
+          chan.send({embed}).then(m => setTimeout(function () {
+            message.delete()
+            m.delete()
+          }, 15000))
+        }
+        cooldown("profileCmd", 15, profile)
       })
     }
     if(message.content.startsWith("!leaderboard")) {
@@ -150,10 +168,13 @@ module.exports = {
           "title": "Top 10 users",
           "fields": q
         }
-        chan.send({embed}).then(m => setTimeout(function () {
-          message.delete()
-          m.delete()
-        }, 10000))
+        function leaderboard() {
+          chan.send({embed}).then(m => setTimeout(function () {
+            message.delete()
+            m.delete()
+          }, 10000))
+        }
+        cooldown("leaderboardCmd", 10, leaderboard)
       })
     }
   }
