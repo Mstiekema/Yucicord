@@ -24,7 +24,8 @@ module.exports = {
         username: message.author.username,
         id: message.author.id
       }
-      if(activeUsers.findIndex(i => i.username == message.author.username) != -1) return
+      if(message.author.bot == true) return
+      if(activeUsers.findIndex(i => i.id == message.author.id) != -1) return  
       activeUsers.push(userInfo)
     })
     function addPoints(u, w) {
@@ -45,14 +46,16 @@ module.exports = {
       for (var i = 0; i < base.length; i++) {
         var j = ids.indexOf(base[i].user.id)
         if(j != -1 && allStats[j] != 'offline') {
-          var userInfo = {
-            name: base[i].user.username,
-            userId: base[i].user.id,
-            points: 0,
-            time: 0
+          if(base[i].user.bot == false) {
+            var userInfo = {
+              name: base[i].user.username,
+              userId: base[i].user.id,
+              points: 0,
+              time: 0
+            }
+            var w = true;
+            addPoints(userInfo, w)
           }
-          var w = true;
-          addPoints(userInfo, w)
         }
       }
     }, 300000);
