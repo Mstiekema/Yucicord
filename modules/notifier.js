@@ -115,8 +115,11 @@ module.exports = {
         }
         
         if(lastvid[0] != body.items[0].id.videoId && (Math.round(new Date(body.items[0].snippet.publishedAt).getTime() / 1000) - lastvid[1] > 0)) {
+          var msgs = c.channels.find('name', 'mededelingen').messages.map(function(x) {return x.content})
+          var ytMsg = "@everyone Nieuwe video staat online! '" + body.items[0].snippet.title + "' https://www.youtube.com/watch?v=" +  body.items[0].id.videoId
+          if(msgs.indexOf(ytMsg) != -1) return
           console.log("NEW VIDEO")
-          chan.send("@everyone Nieuwe video staat online! '" + body.items[0].snippet.title + "' https://www.youtube.com/watch?v=" +  body.items[0].id.videoId)
+          chan.send(ytMsg)
           lastvid[0] = body.items[0].id.videoId
         }
       })
