@@ -6,6 +6,13 @@ var streamLive;
 var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.tv/" + config.info.streamerName
 
 module.exports = {
+  newPeople: function(c) {
+    c.on('guildMemberAdd', member => {
+      const channel = member.guild.channels.find(ch => ch.name === 'new-members');
+      if (!channel) return;
+      channel.send(`Welcome ${member}, is there something I can help you with today?`);
+    });
+  },
   twitch: function (c) {
     var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
     setInterval(function () {
@@ -60,14 +67,14 @@ module.exports = {
           console.log("THE STREAM IS NOW OFFLINE FeelsBadMan")
         } else {
           streamLive = false
-        } 
+        }
       })
     }, 60000);
   },
   youtube: function (c) {
     var chan = c.guilds.find("name", config.info.serverName).channels.find('name', 'mededelingen')
     setInterval(function () {
-      request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+config.info.ytId+"&maxResults=10&order=date&type=video&key="+config.keys.ytApiKey, 
+      request("https://www.googleapis.com/youtube/v3/search?part=snippet&channelId="+config.info.ytId+"&maxResults=10&order=date&type=video&key="+config.keys.ytApiKey,
       function (error, response, body, channel) {
         body = JSON.parse(body)
         if(body.items[0] == null) return
@@ -91,7 +98,7 @@ module.exports = {
       access_token_key: config.keys.twitterAccKey,
       access_token_secret: config.keys.twitterAccSecret
     });
-    
+
     client.stream('statuses/filter', {'follow': config.info.twitterUsrs.join(",")}, function(stream) {
       stream.on('data', function(event) {
         if(config.info.twitterUsrs.indexOf(event.user.id) == -1) return
@@ -112,7 +119,7 @@ module.exports = {
       };
       chan.send({ embed })
     });
-      
+
       stream.on('error', function(error) {
         throw error;
       });

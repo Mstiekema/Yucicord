@@ -13,6 +13,7 @@ client.on('ready', function() {
   notif.youtube(client);
   notif.twitch(client);
   notif.twitter(client);
+  notif.newPeople(client);
   loyal.rewardPoints(client);
 });
 
