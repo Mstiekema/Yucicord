@@ -6,6 +6,7 @@ const songq = require('./modules/songqueue.js')
 const notif = require('./modules/notifier.js')
 const loyal = require('./modules/loyalty.js')
 const mod = require('./modules/moderation.js')
+const basic = require('./modules/basic.js')
 
 client.on('ready', function() {
   console.log('Yucicord ready for action');
@@ -16,6 +17,7 @@ client.on('ready', function() {
 });
 
 client.on('message', function(message) {
+  basic.say(message);
   songq.sr(client, message);
   loyal.pointComms(client, message);
   mod.link(message);
