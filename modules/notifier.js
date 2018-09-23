@@ -8,9 +8,10 @@ var msg = "@everyone De stream is nu live! Kom ook kijken op https://www.twitch.
 module.exports = {
   newPeople: function(c) {
     c.on('guildMemberAdd', member => {
+      const role = member.guild.roles.find(role => role.name === "New");
       const channel = member.guild.channels.find(ch => ch.name === 'new-members');
-      if (!channel) return;
-      channel.send(`Welcome ${member}, is there something I can help you with today?`);
+      if (role) {member.addRole(role);}
+      if (channel) {channel.send(`Welcome ${member}, is there something I can help you with today?`);}
     });
   },
   twitch: function (c) {
